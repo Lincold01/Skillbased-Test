@@ -1,6 +1,1 @@
-# Skillbased-Test
-Skillbased Test ITT440
-
-MUHAMMAD AKMAL HAIKAL BIN AZHAR
-2022912743
-CS2554A
+client server communication

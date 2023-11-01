@@ -1,55 +1,63 @@
+// Server side implementation of TCP client-server model
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
-int main() {
-    int server_socket, client_socket;
-    struct sockaddr_in server_address, client_address;
-    int server_address_length = sizeof(server_address);
-    int client_address_length = sizeof(client_address);
+#define PORT 8080
 
-    // Create server socket
-    server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket < 0) {
-        printf("Error creating server socket\n");
-        return 1;
+int main(int argc, char const *argv[])
+{
+    int server_fd, new_socket, valread;
+    struct sockaddr_in address;
+    int opt = 1;
+    int addrlen = sizeof(address);
+    char buffer[1024] = {0};
+    char *hello = "Good morning sir";
+       
+    // Creating socket file descriptor
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    {
+        perror("socket failed");
+        exit(EXIT_FAILURE);
     }
-
-    // Bind server socket to local address and port
-    server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = INADDR_ANY;
-    server_address.sin_port = htons(1234);
-    if (bind(server_socket, (struct sockaddr *) &server_address, server_address>
-        printf("Error binding server socket\n");
-        return 1;
+       
+    // Forcefully attaching socket to the port 8080
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT,
+                                                  &opt, sizeof(opt)))
+    {
+        perror("setsockopt");
+        exit(EXIT_FAILURE);
     }
-
-    // Listen for incoming connections
-    listen(server_socket, 5);
-
-    while (1) {
-        // Accept incoming connection
-        client_socket = accept(server_socket, (struct sockaddr *) &client_addre>
-        if (client_socket < 0) {
-            printf("Connection error\n");
-            return 1;
-        }
-
-        // Generate random number between 100 and 999
-        int random_num = rand() % 900 + 100;
-
-        // Send random number to client
-        send(client_socket, &random_num, sizeof(random_num), 0);
-        printf("Random number sent to client\n");
-
-        // Close client socket
-        close(client_socket);
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons( PORT );
+       
+    // Forcefully attaching socket to the port 8080
+    if (bind(server_fd, (struct sockaddr *)&address,
+                                 sizeof(address))<0)
+    {
+        perror("bind failed");
+        exit(EXIT_FAILURE);
     }
-
-    // Close server socket
-    close(server_socket);
-    return 0;
+    if (listen(server_fd, 3) < 0)
+    {
+        perror("listen");
+        exit(EXIT_FAILURE);
+    }
+    if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
+                       (socklen_t*)&addrlen))<0)
+    {
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
+       
+    valread = read( new_socket , buffer, 1024);
+    printf("%s\n",buffer );
+    send(new_socket , hello , strlen(hello) , 0 );
+    printf("Good morning to you too\n");
+    
 }
+
