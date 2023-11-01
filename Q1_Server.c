@@ -1,55 +1,48 @@
+// Client side implementation of TCP client-server model
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <sys/socket.h>
-#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
 
-int main() {
-    int server_socket, client_socket;
-    struct sockaddr_in server_address, client_address;
-    int server_address_length = sizeof(server_address);
-    int client_address_length = sizeof(client_address);
+#define PORT 8080
 
-    // Create server socket
-    server_socket = socket(AF_INET, SOCK_STREAM, 0);
-    if (server_socket < 0) {
-        printf("Error creating server socket\n");
-        return 1;
+int main(int argc, char const *argv[])
+{
+    struct sockaddr_in address;
+    int sock = 0, valread;
+    struct sockaddr_in serv_addr;
+    char *hello = "Good morning sir";
+    char buffer[1024] = {0};
+    
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        printf("\n Socket creation error \n");
+        return -1;
     }
-
-    // Bind server socket to local address and port
-    server_address.sin_family = AF_INET;
-    server_address.sin_addr.s_addr = INADDR_ANY;
-    server_address.sin_port = htons(1234);
-    if (bind(server_socket, (struct sockaddr *) &server_address, server_address>
-        printf("Error binding server socket\n");
-        return 1;
-    }
-
-    // Listen for incoming connections
-    listen(server_socket, 5);
-
-    while (1) {
-        // Accept incoming connection
-        client_socket = accept(server_socket, (struct sockaddr *) &client_addre>
-        if (client_socket < 0) {
-            printf("Connection error\n");
-            return 1;
-        }
-
-        // Generate random number between 100 and 999
-        int random_num = rand() % 900 + 100;
-
-        // Send random number to client
-        send(client_socket, &random_num, sizeof(random_num), 0);
-        printf("Random number sent to client\n");
-
-        // Close client socket
-        close(client_socket);
-    }
-
-    // Close server socket
-    close(server_socket);
-    return 0;
+   
+    memset(&serv_addr, '0', sizeof(serv_addr));
+   
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+       
+     // Convert IPv4 and IPv6 addresses from text to binary form
+     if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0) 
+     {
+         printf("\nInvalid address/ Address not supported \n");
+         return -1;
+     }
+   
+     if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+     {
+         printf("\nConnection Failed \n");
+         return -1;
+     }
+     send(sock , hello , strlen(hello) , 0 );
+     printf("Good morning sir message sent\n");
+     valread = read( sock , buffer, 1024);
+     printf("%s\n",buffer );
+     return 0;
 }
+
